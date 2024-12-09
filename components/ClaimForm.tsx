@@ -1,11 +1,9 @@
 'use client'
 import { useState } from "react";
-import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { AnimatePresence, motion } from "framer-motion";
 import { FlightDetailsStep } from "./ClaimForm/FlightDetailsStep";
-import { IssueDetailsStep } from "./ClaimForm/IssueDetailsStep";
 import { PersonalDetailsStep } from "./ClaimForm/PersonalDetailsStep";
 import { ReviewStep } from "./ClaimForm/ReviewStep";
 import { ComplaintTypeStep } from "./ClaimForm/ComplaintTypeStep";

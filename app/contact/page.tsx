@@ -9,6 +9,13 @@ const ContactPage: React.FC = () => {
     message: ''
   });
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission
@@ -84,6 +91,9 @@ const ContactPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                     <input
                       type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="Your name"
                     />
@@ -92,6 +102,9 @@ const ContactPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="your@email.com"
                     />
@@ -100,6 +113,9 @@ const ContactPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                     <textarea
                       rows={6}
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="Your message here..."
                     ></textarea>
