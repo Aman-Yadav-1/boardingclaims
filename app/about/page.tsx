@@ -2,9 +2,9 @@ export default function AboutPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="bg-emerald-50 py-20 px-6">
+      <section className="bg-gray-50 py-20 px-6">
         <div className="container mx-auto max-w-4xl text-center">
-          <h1 className="text-5xl font-bold text-emerald-600 mb-6">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-400 bg-clip-text text-transparent hover:opacity-90 transition-opacity mb-6">
             BoardingClaims
           </h1>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">

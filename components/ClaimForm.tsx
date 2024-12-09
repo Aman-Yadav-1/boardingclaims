@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Card } from "./ui/card";
 import { Progress } from "./ui/progress";
-import { AnimatePresence, motion } from "framer-motion";
 import { FlightDetailsStep } from "./ClaimForm/FlightDetailsStep";
 import { PersonalDetailsStep } from "./ClaimForm/PersonalDetailsStep";
 import { ReviewStep } from "./ClaimForm/ReviewStep";
@@ -163,22 +162,14 @@ const ClaimForm: React.FC = () => {
 
       {/* Form Card */}
       <Card className="p-8 shadow-lg border-t-4 border-t-emerald-500">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <FormContent 
-              currentStep={currentStep} 
-              formData={formData} 
-              setFormData={setFormData}
-              setCurrentStep={setCurrentStep}
-            />
-          </motion.div>
-        </AnimatePresence>
+        <div className="transition-all duration-300 ease-in-out">
+          <FormContent 
+            currentStep={currentStep} 
+            formData={formData} 
+            setFormData={setFormData}
+            setCurrentStep={setCurrentStep}
+          />
+        </div>
       </Card>
     </div>
   );
