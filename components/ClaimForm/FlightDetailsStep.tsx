@@ -1,23 +1,48 @@
+import React, { useState, useMemo, useCallback } from 'react';
 import { FormikProps } from 'formik';
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
-import { FormData } from './types';
+import { FormData } from '@/components/ClaimForm/types';
 import { Calendar, Plane } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { debounce } from 'lodash';
 
 interface Airport {
   code: string;
   name: string;
+  cityCode: string;
+  countryCode: string;
 }
+
+type FormStep = 'complaint' | 'flight' | 'personal' | 'review';
 
 interface FlightDetailsStepProps {
   formikProps: FormikProps<FormData>;
-  setCurrentStep: (step: 'complaint' | 'flight' | 'personal' | 'review') => void;
+  setCurrentStep: (step: FormStep) => void;
   airports: Airport[];
 }
 
-export const FlightDetailsStep: React.FC<FlightDetailsStepProps> = ({ formikProps, airports }) => {
+export const FlightDetailsStep: React.FC<FlightDetailsStepProps> = ({ formikProps, setCurrentStep, airports }) => {
   const { values, handleChange, setFieldValue, errors, touched } = formikProps;
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchChange: (term: string) => void = useCallback(
+    debounce((term: string) => setSearchTerm(term), 300),
+    []
+  );
+
+  const availableArrivalAirports = useMemo(
+    () => airports.filter(airport => airport.code !== values.departureAirport),
+    [airports, values.departureAirport]
+  );
+
+  const filteredAirports = useMemo(
+    () => airports.filter(airport =>
+      airport.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      airport.code.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [airports, searchTerm]
+  );
 
   return (
     <div className="space-y-6">
@@ -66,20 +91,25 @@ export const FlightDetailsStep: React.FC<FlightDetailsStepProps> = ({ formikProp
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Departure Airport*</label>
             <Select
-                value={values.departureAirport}
-                onValueChange={(value) => setFieldValue('departureAirport', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select departure airport" />
-                </SelectTrigger>
-                <SelectContent>
-                  {airports.map((airport) => (
-                    <SelectItem key={airport.code} value={airport.code}>
-                      {airport.name ? `${airport.name} (${airport.code})` : airport.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              value={values.departureAirport}
+              onValueChange={(value) => {
+                setFieldValue('departureAirport', value);
+                if (value === values.arrivalAirport) {
+                  setFieldValue('arrivalAirport', '');
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select departure airport" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredAirports.map((airport, index) => (
+                  <SelectItem key={`${airport.code}-${index}`} value={airport.code}>
+                    {airport.name ? `${airport.name} (${airport.code})` : airport.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.departureAirport && touched.departureAirport && (
               <p className="text-red-500 text-sm">{errors.departureAirport}</p>
             )}
@@ -95,8 +125,8 @@ export const FlightDetailsStep: React.FC<FlightDetailsStepProps> = ({ formikProp
                 <SelectValue placeholder="Select arrival airport" />
               </SelectTrigger>
               <SelectContent>
-                {airports.map((airport) => (
-                  <SelectItem key={airport.code} value={airport.code}>
+                {availableArrivalAirports.map((airport, index) => (
+                  <SelectItem key={`${airport.code}-${index}`} value={airport.code}>
                     {airport.name ? `${airport.name} (${airport.code})` : airport.code}
                   </SelectItem>
                 ))}

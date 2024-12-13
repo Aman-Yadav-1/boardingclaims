@@ -1,22 +1,24 @@
 'use client'
-
 import { useState, useEffect } from "react";
-import { Formik, Form, FormikHelpers } from 'formik';
+import { Formik, Form, FormikHelpers, FormikProps } from 'formik';
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { lufthansaApi } from '@/lib/lufthansa-api';
+import { getAirports } from '@/lib/lufthansa-api';
 import { ComplaintTypeStep } from "@/components/ClaimForm/ComplaintTypeStep";
 import { FlightDetailsStep } from "@/components/ClaimForm/FlightDetailsStep";
 import { PersonalDetailsStep } from "@/components/ClaimForm/PersonalDetailsStep";
-import { ReviewStep } from "@/components/ClaimForm/ReviewStep";
+import { ReviewStep } from "@/components/ClaimForm/ReviewStep"
 import { claimFormSchema } from '@/components/ClaimForm/validationSchema';
 import { FormData } from "@/components/ClaimForm/types";
 import jsPDF from "jspdf";
+import { generateClaimPDF } from '@/lib/pdf-generator';
 
 interface Airport {
   code: string;
   name: string;
+  cityCode: string;
+  countryCode: string;
 }
 
 type FormStep = 'complaint' | 'flight' | 'personal' | 'review';
@@ -44,47 +46,41 @@ const initialValues: FormData = {
 
 const ClaimForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<FormStep>('complaint');
-  const [airports, setAirports] = useState<Airport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-  const loadAirports = async () => {
-    const airportData = await lufthansaApi.getAirports();
-    setAirports(airportData);
-  };
-  loadAirports();
-}, []);
+  useEffect(() => {
+    const loadAirports = async () => {
+      try {
+        setIsLoading(true);
+        const airportData = await getAirports();
+        if (airportData && airportData.length > 0) {
+          setAirports(airportData);
+          setError(null);
+        } else {
+          setError("No airports data available");
+        }
+      } catch (err) {
+        setError("Failed to load airports data");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAirports();
+  }, []);
 
   const handleSubmit = async (values: FormData, actions: FormikHelpers<FormData>) => {
     try {
-      const flightValid = await lufthansaApi.getAirports(); // Replace with appropriate method or remove if not needed
-      
-      if (!flightValid) {
-        actions.setFieldError('flightNumber', 'Invalid flight number or date');
-        return;
-      }
-
-      const response = await fetch('/api/submit-claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
-
-      if (response.ok) {
-        const pdf = new jsPDF();
-        pdf.setFontSize(12);
-        pdf.text(`Claim Reference: ${values.flightNumber}-${Date.now()}`, 10, 10);
-        pdf.text(`Flight Details: ${values.flightNumber}`, 10, 20);
-        pdf.text(`Date: ${values.scheduledDate}`, 10, 30);
-        pdf.text(`From: ${values.departureAirport} To: ${values.arrivalAirport}`, 10, 40);
-        pdf.text(`Name: ${values.firstName} ${values.lastName}`, 10, 50);
-        pdf.save(`claim-${values.flightNumber}.pdf`);
-      }
+      const pdf = generateClaimPDF(values);
+      pdf.save(`claim-${values.flightNumber}.pdf`);
     } catch (error) {
-      console.error('Submission error:', error);
+      console.error('PDF generation error:', error);
     }
     actions.setSubmitting(false);
   };
+    
   const steps = {
     complaint: { number: 1, title: "Complaint Type" },
     flight: { number: 2, title: "Flight Details" },
@@ -115,25 +111,25 @@ useEffect(() => {
         </div>
       </div>
 
-      <Card className="p-8 shadow-lg border-t-4 border-t-emerald-500">
+      <Card className="p-8 shadow-lg border-t-4 border-t-emerald-500 ">
         <Formik
           initialValues={initialValues}
           validationSchema={claimFormSchema}
           onSubmit={handleSubmit}
         >
-          {(formikProps) => (
+          {(formikProps: FormikProps<FormData>) => (
             <Form className="space-y-6">
               {currentStep === 'complaint' && (
-                <ComplaintTypeStep formikProps={formikProps} setCurrentStep={setCurrentStep} />
+                <ComplaintTypeStep formikProps={formikProps} setCurrentStep={setCurrentStep as (step: FormStep) => void} />
               )}
               {currentStep === 'flight' && (
-                <FlightDetailsStep formikProps={formikProps} setCurrentStep={setCurrentStep} airports={airports} />
+                <FlightDetailsStep formikProps={formikProps} setCurrentStep={setCurrentStep as (step: FormStep) => void} airports={airports} />
               )}
               {currentStep === 'personal' && (
-                <PersonalDetailsStep formikProps={formikProps} setCurrentStep={setCurrentStep} />
+                <PersonalDetailsStep formikProps={formikProps} setCurrentStep={setCurrentStep as (step: FormStep) => void} />
               )}
               {currentStep === 'review' && (
-                <ReviewStep formikProps={formikProps} setCurrentStep={setCurrentStep} />
+                <ReviewStep formikProps={formikProps} setCurrentStep={setCurrentStep as (step: FormStep) => void} />
               )}
 
               <div className="flex justify-between pt-6">
@@ -151,48 +147,51 @@ useEffect(() => {
                   </Button>
                 )}
                 {currentStep !== 'review' ? (
-  <Button
-    type="button"
-    onClick={async () => {
-      const steps: FormStep[] = ['complaint', 'flight', 'personal', 'review'];
-      const currentIndex = steps.indexOf(currentStep);
-      const errors = await formikProps.validateForm();
-      
-      // Check only fields relevant to current step
-      const currentStepFields = Object.keys(errors).filter(field => {
-        switch (currentStep) {
-          case 'complaint':
-            return ['complaintType', 'delayDuration'].includes(field);
-          case 'flight':
-            return ['flightNumber', 'departureAirport', 'arrivalAirport', 'scheduledDate'].includes(field);
-          case 'personal':
-            return ['firstName', 'lastName', 'email', 'phone', 'address'].includes(field);
-          default:
-            return false;
-        }
-      });
+                  <Button
+                    type="button"
+                    variant="cta"
+                    className="px-7 text-[14px]"
+                    onClick={async () => {
+                      const steps: FormStep[] = ['complaint', 'flight', 'personal', 'review'];
+                      const currentIndex = steps.indexOf(currentStep);
+                      const errors = await formikProps.validateForm();
+                      
+                      // Check only fields relevant to current step
+                      const currentStepFields = Object.keys(errors).filter(field => {
+                        switch (currentStep) {
+                          case 'complaint':
+                            return ['complaintType', 'delayDuration'].includes(field);
+                          case 'flight':
+                            return ['flightNumber', 'departureAirport', 'arrivalAirport', 'scheduledDate'].includes(field);
+                          case 'personal':
+                            return ['firstName', 'lastName', 'email', 'phone', 'address'].includes(field);
+                          default:
+                            return false;
+                        }
+                      });
 
-      if (currentStepFields.length === 0) {
-        setCurrentStep(steps[currentIndex + 1]);
-      } else {
-        // Touch all fields in current step to show validation errors
-        currentStepFields.forEach(field => {
-          formikProps.setFieldTouched(field, true);
-        });
-      }
-    }}
-  >
-    Next
-  </Button>
-) : (
-  <Button
-    type="submit"
-    disabled={formikProps.isSubmitting}
-    className="bg-emerald-600 hover:bg-emerald-700"
-  >
-    Submit Claim
-  </Button>
-)}
+                      if (currentStepFields.length === 0) {
+                        setCurrentStep(steps[currentIndex + 1]);
+                      } else {
+                        // Touch all fields in current step to show validation errors
+                        currentStepFields.forEach(field => {
+                          formikProps.setFieldTouched(field, true);
+                        });
+                      }
+                    }}
+                  >
+                    Next
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    variant="cta"
+                    disabled={formikProps.isSubmitting}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Submit Claim
+                  </Button>
+                )}
               </div>
             </Form>
           )}

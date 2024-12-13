@@ -47,11 +47,11 @@ const Navbar: React.FC = () => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button asChild variant="default" className="bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transform hover:scale-105 transition-all">
-              <Link href="/claim-form">
-                Check Your Claim
-              </Link>
-            </Button>
+          <Button asChild variant="cta" className=" shadow-md hover:shadow-lg transform hover:scale-102 transition-all">
+            <Link href="/claim-form">
+              Check Your Claim
+            </Link>
+          </Button>
           </div>
 
           {/* Mobile Menu Button */}
