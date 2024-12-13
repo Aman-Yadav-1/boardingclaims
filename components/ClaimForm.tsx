@@ -1,133 +1,90 @@
 'use client'
-import { useState } from "react";
-import { Card } from "./ui/card";
-import { Progress } from "./ui/progress";
-import { FlightDetailsStep } from "./ClaimForm/FlightDetailsStep";
-import { PersonalDetailsStep } from "./ClaimForm/PersonalDetailsStep";
-import { ReviewStep } from "./ClaimForm/ReviewStep";
-import { ComplaintTypeStep } from "./ClaimForm/ComplaintTypeStep";
+
+import { useState, useEffect } from "react";
+import { Formik, Form, FormikHelpers } from 'formik';
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { lufthansaApi } from '@/lib/lufthansa-api';
+import { ComplaintTypeStep } from "@/components/ClaimForm/ComplaintTypeStep";
+import { FlightDetailsStep } from "@/components/ClaimForm/FlightDetailsStep";
+import { PersonalDetailsStep } from "@/components/ClaimForm/PersonalDetailsStep";
+import { ReviewStep } from "@/components/ClaimForm/ReviewStep";
+import { claimFormSchema } from '@/components/ClaimForm/validationSchema';
+import { FormData } from "@/components/ClaimForm/types";
+import jsPDF from "jspdf";
+
+interface Airport {
+  code: string;
+  name: string;
+}
 
 type FormStep = 'complaint' | 'flight' | 'personal' | 'review';
 
+const initialValues: FormData = {
+  complaintType: "",
+  delayDuration: "",
+  flightNumber: "",
+  departureAirport: "",
+  arrivalAirport: "",
+  scheduledDate: "",
+  hasConnectedFlight: false,
+  connectedFlightNumber: "",
+  connectedDepartureAirport: "",
+  connectedArrivalAirport: "",
+  connectedScheduledDate: "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  address: "",
+  remarks: "",
+  termsAccepted: false
+};
+
 const ClaimForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<FormStep>('complaint');
-  const [formData, setFormData] = useState({
-    // Complaint Type (Required first)
-    complaintType: "",
-    delayDuration: "",
-    
-    // Flight Details
-    flightNumber: "",
-    departureAirport: "",
-    arrivalAirport: "",
-    scheduledDate: "",
-    
-    // Optional Connected Flight
-    hasConnectedFlight: false,
-    connectedFlightNumber: "",
-    connectedDepartureAirport: "",
-    connectedArrivalAirport: "",
-    connectedScheduledDate: "",
-    
-    // Personal Details
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    
-    // Additional
-    remarks: "",
-    termsAccepted: false
-  });
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateStep = (step: FormStep) => {
-    const newErrors: Record<string, string> = {};
-    
-    switch (step) {
-      case 'complaint':
-        // Complaint Type validation
-        if (!formData.complaintType) {
-          newErrors.complaintType = 'Please select a complaint type';
-        }
-        if (formData.complaintType === 'delay' && !formData.delayDuration) {
-          newErrors.delayDuration = 'Please select delay duration';
-        }
-        break;
-
-      case 'flight':
-        // Main Flight Details validation
-        if (!formData.flightNumber) {
-          newErrors.flightNumber = 'Flight number is required';
-        }
-        if (!formData.departureAirport) {
-          newErrors.departureAirport = 'Departure airport is required';
-        }
-        if (!formData.arrivalAirport) {
-          newErrors.arrivalAirport = 'Arrival airport is required';
-        }
-        if (!formData.scheduledDate) {
-          newErrors.scheduledDate = 'Flight date is required';
-        }
-        
-        // Connected Flight validation (if applicable)
-        if (formData.hasConnectedFlight) {
-          if (!formData.connectedFlightNumber) {
-            newErrors.connectedFlightNumber = 'Connected flight number is required';
-          }
-          if (!formData.connectedDepartureAirport) {
-            newErrors.connectedDepartureAirport = 'Connected departure airport is required';
-          }
-          if (!formData.connectedArrivalAirport) {
-            newErrors.connectedArrivalAirport = 'Connected arrival airport is required';
-          }
-          if (!formData.connectedScheduledDate) {
-            newErrors.connectedScheduledDate = 'Connected flight date is required';
-          }
-        }
-        break;
-
-      case 'personal':
-        // Personal Details validation
-        if (!formData.firstName) {
-          newErrors.firstName = 'First name is required';
-        }
-        if (!formData.lastName) {
-          newErrors.lastName = 'Last name is required';
-        }
-        if (!formData.email) {
-          newErrors.email = 'Email is required';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = 'Please enter a valid email address';
-        }
-        if (!formData.phone) {
-          newErrors.phone = 'Phone number is required';
-        }
-        if (!formData.address) {
-          newErrors.address = 'Address is required';
-        }
-        break;
-
-      case 'review':
-        // Terms & Conditions validation
-        if (!formData.termsAccepted) {
-          newErrors.termsAccepted = 'You must accept the terms and conditions';
-        }
-        break;
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+useEffect(() => {
+  const loadAirports = async () => {
+    const airportData = await lufthansaApi.getAirports();
+    setAirports(airportData);
   };
+  loadAirports();
+}, []);
 
-  const handleNextStep = (nextStep: FormStep) => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(nextStep);
+  const handleSubmit = async (values: FormData, actions: FormikHelpers<FormData>) => {
+    try {
+      const flightValid = await lufthansaApi.getAirports(); // Replace with appropriate method or remove if not needed
+      
+      if (!flightValid) {
+        actions.setFieldError('flightNumber', 'Invalid flight number or date');
+        return;
+      }
+
+      const response = await fetch('/api/submit-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      });
+
+      if (response.ok) {
+        const pdf = new jsPDF();
+        pdf.setFontSize(12);
+        pdf.text(`Claim Reference: ${values.flightNumber}-${Date.now()}`, 10, 10);
+        pdf.text(`Flight Details: ${values.flightNumber}`, 10, 20);
+        pdf.text(`Date: ${values.scheduledDate}`, 10, 30);
+        pdf.text(`From: ${values.departureAirport} To: ${values.arrivalAirport}`, 10, 40);
+        pdf.text(`Name: ${values.firstName} ${values.lastName}`, 10, 50);
+        pdf.save(`claim-${values.flightNumber}.pdf`);
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
     }
+    actions.setSubmitting(false);
   };
-  
   const steps = {
     complaint: { number: 1, title: "Complaint Type" },
     flight: { number: 2, title: "Flight Details" },
@@ -139,17 +96,15 @@ const ClaimForm: React.FC = () => {
     const stepNumbers = { complaint: 25, flight: 50, personal: 75, review: 100 };
     return stepNumbers[currentStep];
   };
-  
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Progress Indicator */}
       <div className="mb-8">
         <Progress value={getProgress()} className="h-2 bg-emerald-100" />
         <div className="flex justify-between mt-4">
           {Object.entries(steps).map(([key, step]) => (
-            <div 
-              key={key} 
+            <div
+              key={key}
               className={`text-sm font-medium ${
                 currentStep === key ? 'text-emerald-600' : 'text-gray-400'
               }`}
@@ -160,39 +115,91 @@ const ClaimForm: React.FC = () => {
         </div>
       </div>
 
-      {/* Form Card */}
       <Card className="p-8 shadow-lg border-t-4 border-t-emerald-500">
-        <div className="transition-all duration-300 ease-in-out">
-          <FormContent 
-            currentStep={currentStep} 
-            formData={formData} 
-            setFormData={setFormData}
-            setCurrentStep={setCurrentStep}
-          />
-        </div>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={claimFormSchema}
+          onSubmit={handleSubmit}
+        >
+          {(formikProps) => (
+            <Form className="space-y-6">
+              {currentStep === 'complaint' && (
+                <ComplaintTypeStep formikProps={formikProps} setCurrentStep={setCurrentStep} />
+              )}
+              {currentStep === 'flight' && (
+                <FlightDetailsStep formikProps={formikProps} setCurrentStep={setCurrentStep} airports={airports} />
+              )}
+              {currentStep === 'personal' && (
+                <PersonalDetailsStep formikProps={formikProps} setCurrentStep={setCurrentStep} />
+              )}
+              {currentStep === 'review' && (
+                <ReviewStep formikProps={formikProps} setCurrentStep={setCurrentStep} />
+              )}
+
+              <div className="flex justify-between pt-6">
+                {currentStep !== 'complaint' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const steps: FormStep[] = ['complaint', 'flight', 'personal', 'review'];
+                      const currentIndex = steps.indexOf(currentStep);
+                      setCurrentStep(steps[currentIndex - 1]);
+                    }}
+                  >
+                    Previous
+                  </Button>
+                )}
+                {currentStep !== 'review' ? (
+  <Button
+    type="button"
+    onClick={async () => {
+      const steps: FormStep[] = ['complaint', 'flight', 'personal', 'review'];
+      const currentIndex = steps.indexOf(currentStep);
+      const errors = await formikProps.validateForm();
+      
+      // Check only fields relevant to current step
+      const currentStepFields = Object.keys(errors).filter(field => {
+        switch (currentStep) {
+          case 'complaint':
+            return ['complaintType', 'delayDuration'].includes(field);
+          case 'flight':
+            return ['flightNumber', 'departureAirport', 'arrivalAirport', 'scheduledDate'].includes(field);
+          case 'personal':
+            return ['firstName', 'lastName', 'email', 'phone', 'address'].includes(field);
+          default:
+            return false;
+        }
+      });
+
+      if (currentStepFields.length === 0) {
+        setCurrentStep(steps[currentIndex + 1]);
+      } else {
+        // Touch all fields in current step to show validation errors
+        currentStepFields.forEach(field => {
+          formikProps.setFieldTouched(field, true);
+        });
+      }
+    }}
+  >
+    Next
+  </Button>
+) : (
+  <Button
+    type="submit"
+    disabled={formikProps.isSubmitting}
+    className="bg-emerald-600 hover:bg-emerald-700"
+  >
+    Submit Claim
+  </Button>
+)}
+              </div>
+            </Form>
+          )}
+        </Formik>
       </Card>
     </div>
   );
 };
 
-// Create separate components for each form step
-const FormContent: React.FC<{
-  currentStep: FormStep;
-  formData: any;
-  setFormData: (data: any) => void;
-  setCurrentStep: (step: FormStep) => void;
-}> = ({ currentStep, formData, setFormData, setCurrentStep }) => {
-  switch (currentStep) {
-    case 'complaint':
-      return <ComplaintTypeStep formData={formData} setFormData={setFormData} setCurrentStep={setCurrentStep} />;
-    case 'flight':
-      return <FlightDetailsStep formData={formData} setFormData={setFormData} setCurrentStep={setCurrentStep} />;
-    case 'personal':
-      return <PersonalDetailsStep formData={formData} setFormData={setFormData} setCurrentStep={setCurrentStep} />;
-    case 'review':
-      return <ReviewStep formData={formData} setFormData={setFormData} setCurrentStep={setCurrentStep as (step: "flight" | "personal" | "review" | "issue") => void} />;
-    default:
-      return null;
-  }
-};
 export default ClaimForm;
