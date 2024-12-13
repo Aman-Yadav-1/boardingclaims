@@ -5,7 +5,6 @@ import { Checkbox } from "../ui/checkbox";
 import { FormData } from '@/components/ClaimForm/types';
 import { Calendar, Plane } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { debounce } from 'lodash';
 
 interface Airport {
   code: string;
@@ -26,10 +25,6 @@ export const FlightDetailsStep: React.FC<FlightDetailsStepProps> = ({ formikProp
   const { values, handleChange, setFieldValue, errors, touched } = formikProps;
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSearchChange: (term: string) => void = useCallback(
-    debounce((term: string) => setSearchTerm(term), 300),
-    []
-  );
 
   const availableArrivalAirports = useMemo(
     () => airports.filter(airport => airport.code !== values.departureAirport),
