@@ -3,54 +3,71 @@ import { FormData } from '@/components/ClaimForm/types';
 
 export const generateClaimPDF = (data: FormData) => {
   const doc = new jsPDF();
-
-  // Add header with better styling
-  doc.setFontSize(24);
+  
+  // Add logo and branding
+  doc.setFillColor(0, 150, 136); // Emerald color
+  doc.rect(0, 0, 220, 40, 'F');
+  
+  // Header
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 51, 102); // Dark blue color
-  doc.text('BOARDING CLAIMS', 105, 20, { align: 'center' });
-
-  // Add a horizontal line below the header
-  doc.setDrawColor(0, 51, 102); // Dark blue color
-  doc.line(10, 25, 200, 25);
-
-  // Add subtitle
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0, 0, 0); // Black color
-  doc.text('Claim Details', 105, 35, { align: 'center' });
-
-  // Add claim details with better styling
+  doc.text('BOARDING CLAIMS', 105, 25, { align: 'center' });
+  
+  // Claim Reference
+  doc.setTextColor(100, 100, 100);
   doc.setFontSize(12);
-  const startY = 45;
-  const lineHeight = 10;
-  let currentY = startY;
-
-  const addDetail = (label: string, value: string) => {
+  doc.text(`Claim Reference: BC-${Date.now().toString().slice(-6)}`, 20, 50);
+  
+  // Sections with better visual hierarchy
+  const addSection = (title: string, startY: number) => {
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, startY - 5, 170, 8, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.text(`${label}:`, 20, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(value, 70, currentY);
-    currentY += lineHeight;
+    doc.setTextColor(0, 150, 136);
+    doc.text(title, 25, startY);
+    return startY + 15;
   };
 
-  const formatAirport = (code: string, name: string) => `${code} (${name})`;
-
-  addDetail('Flight Number', data.flightNumber);
-  addDetail('Scheduled Date', data.scheduledDate);
-  addDetail('Departure Airport', data.departureAirport);
-  addDetail('Arrival Airport', data.arrivalAirport);
-  addDetail('First Name', data.firstName);
-  addDetail('Last Name', data.lastName);
-  addDetail('Email', data.email);
-  addDetail('Phone', data.phone);
-  addDetail('Address', data.address);
-  addDetail('Remarks', data.remarks);
-
-  // Add footer
+  let yPos = 70;
+  
+  // Flight Information
+  yPos = addSection('FLIGHT INFORMATION', yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+  doc.text(`Flight Number: ${data.flightNumber}`, 25, yPos);
+  doc.text(`Date: ${data.scheduledDate}`, 120, yPos);
+  yPos += 10;
+  doc.text(`From: ${data.departureAirport}`, 25, yPos);
+  doc.text(`To: ${data.arrivalAirport}`, 120, yPos);
+  
+  // Complaint Details
+  yPos = addSection('COMPLAINT DETAILS', yPos + 20);
+  doc.text(`Type: ${data.complaintType.toUpperCase()}`, 25, yPos);
+  if (data.complaintType === 'delay') {
+    doc.text(`Duration: ${data.delayDuration}`, 120, yPos);
+  }
+  
+  // Passenger Information
+  yPos = addSection('PASSENGER INFORMATION', yPos + 20);
+  doc.text(`Name: ${data.firstName} ${data.lastName}`, 25, yPos);
+  yPos += 10;
+  doc.text(`Email: ${data.email}`, 25, yPos);
+  yPos += 10;
+  doc.text(`Phone: ${data.phone}`, 25, yPos);
+  
+  // Additional Remarks
+  if (data.remarks) {
+    yPos = addSection('ADDITIONAL REMARKS', yPos + 20);
+    doc.text(data.remarks, 25, yPos, { maxWidth: 160 });
+  }
+  
+  // Footer
+  doc.setFillColor(0, 150, 136);
+  doc.rect(0, 280, 220, 20, 'F');
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
-  doc.setTextColor(128, 128, 128); // Gray color
-  doc.text('Thank you for using Boarding Claims', 105, 280, { align: 'center' });
+  doc.text('BoardingClaims.com - Your Rights, Our Priority', 105, 290, { align: 'center' });
 
   return doc;
 };

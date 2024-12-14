@@ -5,11 +5,11 @@ export interface FormData {
   departureAirport: string;
   arrivalAirport: string;
   scheduledDate: string;
-  hasConnectedFlight: boolean;
-  connectedFlightNumber: string;
-  connectedDepartureAirport: string;
-  connectedArrivalAirport: string;
-  connectedScheduledDate: string;
+  hasStops: boolean;
+  stopFlights: Array<{
+    airport: string;
+    flightNumber: string;
+  }>;
   firstName: string;
   lastName: string;
   email: string;
@@ -18,6 +18,7 @@ export interface FormData {
   remarks: string;
   termsAccepted: boolean;
 }
+
 
 export interface StepProps {
   formData: FormData;

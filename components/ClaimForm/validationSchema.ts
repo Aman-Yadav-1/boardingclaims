@@ -9,10 +9,24 @@ export const claimFormSchema = Yup.object().shape({
   }),
 
   // Flight step
-  flightNumber: Yup.string().required('Flight number is required'),
+  flightNumber: Yup.string()
+    .required('Flight number is required')
+    .matches(/^[A-Z0-9]{2,8}$/, 'Invalid flight number format'),
   departureAirport: Yup.string().required('Departure airport is required'),
   arrivalAirport: Yup.string().required('Arrival airport is required'),
   scheduledDate: Yup.string().required('Flight date is required'),
+  hasStops: Yup.boolean(),
+  stopFlights: Yup.array().when('hasStops', {
+    is: true,
+    then: () => Yup.array().of(
+      Yup.object().shape({
+        airport: Yup.string().required('Stop airport is required'),
+        flightNumber: Yup.string()
+          .required('Flight number is required')
+          .matches(/^[A-Z0-9]{2,8}$/, 'Invalid flight number format')
+      })
+    )
+  }),
 
   // Personal step
   firstName: Yup.string().required('First name is required'),
