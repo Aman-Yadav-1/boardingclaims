@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Formik, Form, FormikHelpers, FormikProps } from 'formik';
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { getAirports } from '@/lib/lufthansa-api';
 import { ComplaintTypeStep } from "@/components/ClaimForm/ComplaintTypeStep";

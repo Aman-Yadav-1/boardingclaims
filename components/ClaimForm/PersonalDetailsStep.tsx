@@ -9,7 +9,7 @@ interface PersonalDetailsStepProps {
 }
 
 export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ formikProps }) => {
-  const { values, handleChange, errors, touched } = formikProps;
+  const { values, handleChange, errors, touched, handleBlur } = formikProps;
 
   return (
     <div className="space-y-6">
@@ -27,6 +27,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ formik
             name="firstName"
             value={values.firstName}
             onChange={handleChange}
+            onBlur={handleBlur}
+            className={errors.firstName && touched.firstName ? 'border-red-500' : ''}
           />
           {errors.firstName && touched.firstName && (
             <p className="text-red-500 text-sm">{errors.firstName}</p>
@@ -44,6 +46,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ formik
             name="lastName"
             value={values.lastName}
             onChange={handleChange}
+            onBlur={handleBlur}
+            className={errors.lastName && touched.lastName ? 'border-red-500' : ''}
           />
           {errors.lastName && touched.lastName && (
             <p className="text-red-500 text-sm">{errors.lastName}</p>
@@ -62,6 +66,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ formik
             name="email"
             value={values.email}
             onChange={handleChange}
+            onBlur={handleBlur}
+            className={errors.email && touched.email ? 'border-red-500' : ''}
           />
           {errors.email && touched.email && (
             <p className="text-red-500 text-sm">{errors.email}</p>
@@ -80,6 +86,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ formik
             name="phone"
             value={values.phone}
             onChange={handleChange}
+            onBlur={handleBlur}
+            className={errors.phone && touched.phone ? 'border-red-500' : ''}
           />
           {errors.phone && touched.phone && (
             <p className="text-red-500 text-sm">{errors.phone}</p>
@@ -97,6 +105,8 @@ export const PersonalDetailsStep: React.FC<PersonalDetailsStepProps> = ({ formik
             name="address"
             value={values.address}
             onChange={handleChange}
+            onBlur={handleBlur}
+            className={errors.address && touched.address ? 'border-red-500' : ''}
           />
           {errors.address && touched.address && (
             <p className="text-red-500 text-sm">{errors.address}</p>

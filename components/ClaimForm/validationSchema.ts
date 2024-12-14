@@ -31,10 +31,18 @@ export const claimFormSchema = Yup.object().shape({
   // Personal step
   firstName: Yup.string().required('First name is required'),
   lastName: Yup.string().required('Last name is required'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
+  email: Yup.string().email('Invalid email format').required('Email is required'),
   phone: Yup.string().matches(/^[0-9]{10}$/, 'Phone number must be 10 digits').required('Phone number is required'),
   address: Yup.string().required('Address is required'),
 
   // Review step
   termsAccepted: Yup.boolean().oneOf([true], 'You must accept the terms and conditions')
+});
+
+export const personalDetailsSchema = Yup.object().shape({
+  firstName: Yup.string().required('First name is required'),
+  lastName: Yup.string().required('Last name is required'),
+  email: Yup.string().email('Invalid email format').required('Email is required'),
+  phone: Yup.string().matches(/^[0-9]{10}$/, 'Phone number must be 10 digits').required('Phone number is required'),
+  address: Yup.string().required('Address is required'),
 });
