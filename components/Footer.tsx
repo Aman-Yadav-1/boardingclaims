@@ -85,7 +85,7 @@ export default function Footer() {
                     <p>&copy; {new Date().getFullYear()} BoardingClaims. All rights reserved.</p>
                 </div>
                 {/* Made with <3 by Aman Yadav */}
-                <div className="text-center text-xs text-gray-400 pt-6 border-t border-sky-800/30">
+                <div className="text-center text-xs text-gray-400 pt-6">
                     <p>Made with <span className="text-red-500">&hearts;</span> by Aman Yadav</p>
                 </div>
             </div>
