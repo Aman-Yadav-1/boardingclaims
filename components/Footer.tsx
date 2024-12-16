@@ -32,9 +32,9 @@ export default function Footer() {
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/how-it-works" 
+                                    <Link href="/how-we-works" 
                                         className="text-gray-300 hover:text-emerald-400 transition-colors flex items-center gap-2">
-                                        <span>→</span> How It Works
+                                        <span>→</span> How We Work
                                     </Link>
                                 </li>
                                 <li>
@@ -51,13 +51,13 @@ export default function Footer() {
                             <h4 className="text-sm font-semibold mb-3 text-emerald-400">Legal</h4>
                             <ul className="space-y-2 text-sm">
                                 <li>
-                                    <Link href="/privacy-policy" 
+                                    <Link href="/" 
                                         className="text-gray-300 hover:text-emerald-400 transition-colors flex items-center gap-2">
                                         <span>→</span> Privacy
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/terms" 
+                                    <Link href="/" 
                                         className="text-gray-300 hover:text-emerald-400 transition-colors flex items-center gap-2">
                                         <span>→</span> Terms
                                     </Link>
@@ -83,6 +83,10 @@ export default function Footer() {
                 {/* Copyright */}
                 <div className="text-center text-xs text-gray-400 pt-6 border-t border-sky-800/30">
                     <p>&copy; {new Date().getFullYear()} BoardingClaims. All rights reserved.</p>
+                </div>
+                {/* Made with <3 by Aman Yadav */}
+                <div className="text-center text-xs text-gray-400 pt-6 border-t border-sky-800/30">
+                    <p>Made with <span className="text-red-500">&hearts;</span> by Aman Yadav</p>
                 </div>
             </div>
         </footer>
