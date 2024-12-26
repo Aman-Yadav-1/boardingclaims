@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function YourRightsPage() {
   return (
-    <div className="bg-white text-black">
+    <div className="bg-white text-black pt-16 sm:pt-20">
       {/* Hero Section */}
       <section className="bg-emerald-50 py-20 px-6">
         <div className="container mx-auto max-w-4xl text-center">

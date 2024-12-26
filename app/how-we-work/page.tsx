@@ -1,6 +1,6 @@
 export default function HowWeWork() {
   return (
-    <div className="min-h-screen bg-emerald-50">
+    <div className="min-h-screen bg-emerald-50 pt-16 sm:pt-20">
       {/* Hero Section */}
       <section className="px-6 py-16 container mx-auto">
         <h1 className="text-4xl md:text-5xl font-bold text-emerald-700 text-center mb-8">

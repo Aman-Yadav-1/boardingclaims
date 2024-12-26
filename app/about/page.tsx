@@ -1,6 +1,6 @@
 export default function AboutPage() {
   return (
-    <div className="bg-white">
+    <div className="bg-white pt-16 sm:pt-20">
       {/* Hero Section */}
       <section className="bg-gray-50 py-20 px-6">
         <div className="container mx-auto max-w-4xl text-center">
