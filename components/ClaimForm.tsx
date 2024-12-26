@@ -90,16 +90,42 @@ const ClaimForm: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-12 gap-8">
-        {/* Progress Steps Box */}
-        <div className="col-span-3">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-            <h3 className="text-lg font-semibold mb-8 text-gray-800">Claim Progress</h3>
-            <div className="relative">
-              {/* Vertical line connecting steps */}
-              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        {/* Progress Steps Box - Now responsive */}
+        <div className="lg:col-span-3 order-2 lg:order-1">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 sticky top-24">
+            <h3 className="text-lg font-semibold mb-6 lg:mb-8 text-gray-800">Claim Progress</h3>
+            
+            {/* Progress on mobile - Horizontal steps */}
+            <div className="flex lg:hidden justify-between mb-6">
+              {Object.entries(steps).map(([key, step]) => (
+                <div key={key} className="flex flex-col items-center">
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center
+                    transition-all duration-200 ease-in-out
+                    ${currentStep === key
+                      ? 'bg-emerald-500 text-white ring-4 ring-emerald-100'
+                      : completedSteps.has(key as FormStep)
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-white border-2 border-gray-300'
+                    }
+                  `}>
+                    {completedSteps.has(key as FormStep)
+                      ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      : step.number
+                    }
+                  </div>
+                  <span className="text-xs mt-2 hidden sm:block">{step.title}</span>
+                </div>
+              ))}
+            </div>
 
+            {/* Progress on desktop - Vertical steps */}
+            <div className="hidden lg:block relative">
+              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
               <div className="space-y-8">
                 {Object.entries(steps).map(([key, step]) => (
                   <div key={key} className="relative flex items-center">
@@ -145,8 +171,8 @@ const ClaimForm: React.FC = () => {
         </div>
 
         {/* Main Form Content */}
-        <div className="col-span-9">
-          <Card className="p-8 shadow-lg ">
+        <div className="lg:col-span-9 order-1 lg:order-2">
+          <Card className="p-4 sm:p-6 lg:p-8 shadow-lg">
             <Formik
               initialValues={initialValues}
               validationSchema={claimFormSchema}
@@ -167,11 +193,13 @@ const ClaimForm: React.FC = () => {
                     <ReviewStep formikProps={formikProps} setCurrentStep={setCurrentStep as (step: FormStep) => void} />
                   )}
 
-                  <div className="flex justify-between pt-6">
+                  {/* Responsive buttons */}
+                  <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6">
                     {currentStep !== 'complaint' && (
                       <Button
                         type="button"
                         variant="outline"
+                        className="w-full sm:w-auto order-2 sm:order-1"
                         onClick={() => {
                           const steps: FormStep[] = ['complaint', 'flight', 'personal', 'review'];
                           const currentIndex = steps.indexOf(currentStep);
@@ -193,9 +221,9 @@ const ClaimForm: React.FC = () => {
 
                     {currentStep !== 'review' ? (
                       <Button
-                        type="button" // Ensure this is set to "button"
+                        type="button"
                         variant="cta"
-                        className="px-7 text-[14px]"
+                        className="w-full sm:w-auto px-7 text-[14px] order-1 sm:order-2"
                         onClick={async (e) => {
                           e.preventDefault(); // Prevent any form submission
                           const steps: FormStep[] = ['complaint', 'flight', 'personal', 'review'];
@@ -223,13 +251,12 @@ const ClaimForm: React.FC = () => {
                       >
                         Next
                       </Button>
-
                     ) : (
                       <Button
                         type="submit"
                         variant="cta"
                         disabled={formikProps.isSubmitting}
-                        className="bg-emerald-600 hover:bg-emerald-700"
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 order-1 sm:order-2"
                       >
                         Submit Claim
                       </Button>

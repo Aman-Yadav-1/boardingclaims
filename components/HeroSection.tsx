@@ -23,7 +23,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
 
   return (
-    <section className="relative bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 min-h-[85vh]">
+    <section className="relative bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 min-h-[85vh] pt-16 sm:pt-20">
       <div className="container mx-auto px-6 py-16">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
